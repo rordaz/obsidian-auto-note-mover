@@ -1,5 +1,5 @@
 import AutoNoteMover from 'main';
-import { App, Notice, PluginSettingTab, Setting, ButtonComponent } from 'obsidian';
+import { App, Notice, PluginSettingTab, Setting, ButtonComponent, setIcon } from 'obsidian';
 
 import { FolderSuggest } from 'suggests/file-suggest';
 import { TagSuggest } from 'suggests/tag-suggest';
@@ -245,24 +245,18 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 			s.infoEl.remove();
 		});
 
-		new Setting(this.containerEl)
-			.setName('Add rule')
-			.setDesc('Adds a blank rule at the end of the list.')
-			.addButton((button: ButtonComponent) => {
-				button
-					.setTooltip('Add new rule')
-					.setButtonText('+')
-					.setCta()
-					.onClick(async () => {
-						this.plugin.settings.folder_tag_pattern.push({
-							folder: '',
-							tag: '',
-							pattern: '',
-						});
-						await this.plugin.saveSettings();
-						this.display();
-					});
+		const addRuleEl = this.containerEl.createEl('button', { cls: 'anm-add-rule' });
+		setIcon(addRuleEl, 'plus');
+		addRuleEl.createSpan({ text: 'Add rule' });
+		addRuleEl.addEventListener('click', async () => {
+			this.plugin.settings.folder_tag_pattern.push({
+				folder: '',
+				tag: '',
+				pattern: '',
 			});
+			await this.plugin.saveSettings();
+			this.display();
+		});
 
 		const useRegexToCheckForExcludedFolder = document.createDocumentFragment();
 		useRegexToCheckForExcludedFolder.append(
