@@ -249,6 +249,8 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 			.setName('Add rule')
 			.setDesc('Adds a blank rule at the end of the list.')
 			.addButton((button: ButtonComponent) => {
+				button
+					.setTooltip('Add new rule')
 					.setButtonText('+')
 					.setCta()
 					.onClick(async () => {
