@@ -58,7 +58,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 	}
 
 	add_auto_note_mover_setting(): void {
-		this.containerEl.createEl('h2', { text: 'Auto Note Mover' });
+		this.containerEl.createEl('h2', { text: 'Auto Note Mover (Forked)' });
 
 		const descEl = document.createDocumentFragment();
 
