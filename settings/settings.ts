@@ -66,6 +66,25 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 			'Auto Note Mover will automatically move the active notes to their respective folders according to the rules.'
 		);
 
+		const migrationDesc = document.createDocumentFragment();
+		migrationDesc.createEl('p', {
+			text: 'Caution: never enable the original Auto Note Mover and this fork at the same time. Both would watch the same notes and could move a note twice or to the wrong folder.',
+			cls: 'mod-warning',
+		});
+		migrationDesc.createEl('p', { text: 'To bring your rules over from the original plugin:' });
+		const steps = migrationDesc.createEl('ol');
+		steps.createEl('li', { text: 'Disable Auto Note Mover (the original) in Community plugins.' });
+		steps.createEl('li', { text: 'Enable Auto Note Mover (Forked).' });
+		steps.createEl('li', {
+			text: 'Close Obsidian, or disable the fork, then copy data.json from plugins/auto-note-mover/ to plugins/auto-note-mover-forked/ in your vault\'s .obsidian folder.',
+		});
+		steps.createEl('li', { text: 'Start Obsidian again (or re-enable the fork) and check the rules below.' });
+		steps.createEl('li', { text: 'Remove the original plugin once the rules look right.' });
+
+		new Setting(this.containerEl)
+			.setName('Migrating from the original plugin')
+			.setDesc(migrationDesc);
+
 		/* new Setting(this.containerEl)
 			.setName('Auto Note Mover')
 			.setDesc('Enable or disable the Auto Note Mover.')
