@@ -12,6 +12,9 @@ Changes in this fork:
 
 ### Migrating from the original plugin
 
+> [!warning]
+> Never enable the original **Auto Note Mover** and **Auto Note Mover (Forked)** at the same time. Both plugins watch the same notes, so they can move a note twice or move it to the wrong folder. Disable the original before you enable the fork.
+
 Your rules and other settings are stored in `data.json`, and this fork reads the same format. To bring them over:
 
 1. In Obsidian, go to **Settings > Community plugins** and disable **Auto Note Mover** (the original). Disabling it first stops both plugins from moving notes at the same time.
