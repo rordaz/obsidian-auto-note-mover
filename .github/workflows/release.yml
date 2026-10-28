@@ -12,6 +12,8 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 jobs:
   build-and-release:
@@ -45,6 +47,13 @@ jobs:
           if [ ! -s release_body.md ]; then
             echo "No release notes found for $VERSION" > release_body.md
           fi
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            main.js
+            styles.css
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2

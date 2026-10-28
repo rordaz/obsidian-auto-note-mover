@@ -8,7 +8,7 @@
 // ***************************************************************************************
 import { TAbstractFile, TFolder } from 'obsidian';
 
-import { TextInputSuggest } from './suggest';
+import { TextInputSuggest } from './text-input-suggest';
 
 /* 
 export class FileSuggest extends TextInputSuggest<TFile> {
@@ -61,9 +61,7 @@ export class FolderSuggest extends TextInputSuggest<TFolder> {
 		el.setText(file.path);
 	}
 
-	selectSuggestion(file: TFolder): void {
-		this.inputEl.value = file.path;
-		this.inputEl.trigger('input');
-		this.close();
+	protected toInputValue(file: TFolder): string {
+		return file.path;
 	}
 }

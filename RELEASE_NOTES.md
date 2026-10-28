@@ -1,5 +1,15 @@
 # Release Notes
 
+## [1.4.0] - 2026-10-28
+
+### Changed
+- Requires Obsidian 1.13.0 or newer.
+- Folder and tag suggestions use Obsidian's `AbstractInputSuggest`, and the settings page uses the declarative settings API. The Popper dependency has been removed.
+- README no longer links to the original project.
+
+### Fixed
+- Code review findings: unhandled promise errors, typed settings loading, and the release workflow now publishes build provenance.
+
 ## [1.3.1] - 2026-10-28
 
 ### Added

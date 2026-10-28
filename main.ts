@@ -5,7 +5,11 @@ import { fileMove, getTriggerIndicator, isFmDisable } from 'utils/Utils';
 export default class AutoNoteMover extends Plugin {
 	settings: AutoNoteMoverSettings;
 
-	async onload() {
+	onload(): void {
+		void this.initialize();
+	}
+
+	private async initialize() {
 		await this.loadSettings();
 		const folderTagPattern = this.settings.folder_tag_pattern;
 		const excludedFolder = this.settings.excluded_folder;
@@ -60,13 +64,13 @@ export default class AutoNoteMover extends Plugin {
 				if (!settingPattern) {
 					if (!this.settings.use_regex_to_check_for_tags) {
 						if (cacheTag.find((e) => e === settingTag)) {
-							fileMove(this.app, settingFolder, fileFullName, file);
+							void fileMove(this.app, settingFolder, fileFullName, file);
 							break;
 						}
 					} else if (this.settings.use_regex_to_check_for_tags) {
 						const regex = new RegExp(settingTag);
 						if (cacheTag.find((e) => regex.test(e))) {
-							fileMove(this.app, settingFolder, fileFullName, file);
+							void fileMove(this.app, settingFolder, fileFullName, file);
 							break;
 						}
 					}
@@ -75,7 +79,7 @@ export default class AutoNoteMover extends Plugin {
 					const regex = new RegExp(settingPattern);
 					const isMatch = regex.test(fileName);
 					if (isMatch) {
-						fileMove(this.app, settingFolder, fileFullName, file);
+						void fileMove(this.app, settingFolder, fileFullName, file);
 						break;
 					}
 				}
@@ -129,11 +133,11 @@ export default class AutoNoteMover extends Plugin {
 			callback: () => {
 				if (this.settings.trigger_auto_manual === 'Automatic') {
 					this.settings.trigger_auto_manual = 'Manual';
-					this.saveData(this.settings);
+					void this.saveData(this.settings);
 					new Notice('[Auto Note Mover]\nTrigger is Manual.');
 				} else if (this.settings.trigger_auto_manual === 'Manual') {
 					this.settings.trigger_auto_manual = 'Automatic';
-					this.saveData(this.settings);
+					void this.saveData(this.settings);
 					new Notice('[Auto Note Mover]\nTrigger is Automatic.');
 				}
 				setIndicator();
@@ -146,7 +150,8 @@ export default class AutoNoteMover extends Plugin {
 	onunload() {}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		const data = (await this.loadData()) as Partial<AutoNoteMoverSettings> | null;
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, data);
 	}
 
 	async saveSettings() {

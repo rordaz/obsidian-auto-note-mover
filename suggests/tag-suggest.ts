@@ -1,6 +1,6 @@
 import { App, Plugin, TFile, getAllTags, CachedMetadata, PluginManifest } from 'obsidian';
 
-import { TextInputSuggest } from './suggest';
+import { TextInputSuggest } from './text-input-suggest';
 
 export class GetAllTagsInTheVault extends Plugin {
 	fileArray: TFile[];
@@ -51,9 +51,7 @@ export class TagSuggest extends TextInputSuggest<string> {
 		el.setText(Tag);
 	}
 
-	selectSuggestion(Tag: string): void {
-		this.inputEl.value = Tag;
-		this.inputEl.trigger('input');
-		this.close();
+	protected toInputValue(Tag: string): string {
+		return Tag;
 	}
 }

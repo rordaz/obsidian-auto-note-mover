@@ -1,5 +1,5 @@
 import AutoNoteMover from 'main';
-import { App, Notice, PluginSettingTab, Setting, ButtonComponent, setIcon } from 'obsidian';
+import { App, Notice, PluginSettingTab, ButtonComponent, SettingDefinitionItem, setIcon } from 'obsidian';
 
 import { FolderSuggest } from 'suggests/file-suggest';
 import { TagSuggest } from 'suggests/tag-suggest';
@@ -45,28 +45,39 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 	private redisplayKeepingScroll(): void {
 		const scroller = this.containerEl.closest('.vertical-tab-content');
 		const scrollTop = scroller?.scrollTop ?? 0;
-		this.display();
-		if (scroller) scroller.scrollTop = scrollTop;
+		this.update();
+		if (scroller) {
+			scroller.scrollTop = scrollTop;
+		}
 	}
 
-	display(): void {
-		const { containerEl } = this;
-
-		containerEl.empty();
-		this.containerEl.empty();
-		this.add_auto_note_mover_setting();
+	private async addRule(): Promise<void> {
+		this.plugin.settings.folder_tag_pattern.push({
+			folder: '',
+			tag: '',
+			pattern: '',
+		});
+		await this.plugin.saveSettings();
+		this.redisplayKeepingScroll();
 	}
 
-	add_auto_note_mover_setting(): void {
-		this.containerEl.createEl('h2', { text: 'Auto Note Mover (Forked)' });
+	getSettingDefinitions(): SettingDefinitionItem[] {
+		const items: SettingDefinitionItem[] = [];
+		const descEl = createFragment();
 
-		const descEl = document.createDocumentFragment();
+		items.push({
+			name: 'Auto Note Mover (Forked)',
+			render: (setting) => {
+				setting.setHeading();
+			},
+		});
 
-		new Setting(this.containerEl).setDesc(
-			'Auto Note Mover will automatically move the active notes to their respective folders according to the rules.'
-		);
+		items.push({
+			name: '',
+			desc: 'Auto Note Mover will automatically move the active notes to their respective folders according to the rules.',
+		});
 
-		const migrationDesc = document.createDocumentFragment();
+		const migrationDesc = createFragment();
 		migrationDesc.createEl('p', {
 			text: 'Caution: never enable the original Auto Note Mover and this fork at the same time. Both would watch the same notes and could move a note twice or to the wrong folder.',
 			cls: 'mod-warning',
@@ -76,33 +87,14 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 		steps.createEl('li', { text: 'Disable Auto Note Mover (the original) in Community plugins.' });
 		steps.createEl('li', { text: 'Enable Auto Note Mover (Forked).' });
 		steps.createEl('li', {
-			text: 'Close Obsidian, or disable the fork, then copy data.json from plugins/auto-note-mover/ to plugins/auto-note-mover-forked/ in your vault\'s .obsidian folder.',
+			text: `Close Obsidian, or disable the fork, then copy data.json from plugins/auto-note-mover/ to plugins/auto-note-mover-forked/ in your vault's ${this.app.vault.configDir} folder.`,
 		});
 		steps.createEl('li', { text: 'Start Obsidian again (or re-enable the fork) and check the rules below.' });
 		steps.createEl('li', { text: 'Remove the original plugin once the rules look right.' });
 
-		new Setting(this.containerEl)
-			.setName('Migrating from the original plugin')
-			.setDesc(migrationDesc);
+		items.push({ name: 'Migrating from the original plugin', desc: migrationDesc });
 
-		/* new Setting(this.containerEl)
-			.setName('Auto Note Mover')
-			.setDesc('Enable or disable the Auto Note Mover.')
-			.addToggle((toggle) => {
-				toggle
-					.setValue(this.plugin.settings.enable_auto_note_mover)
-					.onChange(async (use_new_auto_note_mover) => {
-						this.plugin.settings.enable_auto_note_mover = use_new_auto_note_mover;
-						await this.plugin.saveSettings();
-						this.display();
-					});
-			});
-
-		if (!this.plugin.settings.enable_auto_note_mover) {
-			return;
-		} */
-
-		const triggerDesc = document.createDocumentFragment();
+		const triggerDesc = createFragment();
 		triggerDesc.append(
 			'Choose how the trigger will be activated.',
 			descEl.createEl('br'),
@@ -116,22 +108,25 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 			descEl.createEl('br'),
 			'You can trigger by command.'
 		);
-		new Setting(this.containerEl)
-			.setName('Trigger')
-			.setDesc(triggerDesc)
-			.addDropdown((dropDown) =>
-				dropDown
-					.addOption('Automatic', 'Automatic')
-					.addOption('Manual', 'Manual')
-					.setValue(this.plugin.settings.trigger_auto_manual)
-					.onChange((value: string) => {
-						this.plugin.settings.trigger_auto_manual = value;
-						this.plugin.saveData(this.plugin.settings);
-						this.display();
-					})
-			);
+		items.push({
+			name: 'Trigger',
+			desc: triggerDesc,
+			render: (setting) => {
+				setting.addDropdown((dropDown) =>
+					dropDown
+						.addOption('Automatic', 'Automatic')
+						.addOption('Manual', 'Manual')
+						.setValue(this.plugin.settings.trigger_auto_manual)
+						.onChange(async (value: string) => {
+							this.plugin.settings.trigger_auto_manual = value;
+							await this.plugin.saveData(this.plugin.settings);
+							this.redisplayKeepingScroll();
+						})
+				);
+			},
+		});
 
-		const useRegexToCheckForTags = document.createDocumentFragment();
+		const useRegexToCheckForTags = createFragment();
 		useRegexToCheckForTags.append(
 			'If enabled, tags will be checked with regular expressions.',
 			descEl.createEl('br'),
@@ -144,18 +139,21 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 				text: 'If you want to use the suggested tags as they are, it is recommended to disable this setting.',
 			})
 		);
-		new Setting(this.containerEl)
-			.setName('Use regular expressions to check for tags')
-			.setDesc(useRegexToCheckForTags)
-			.addToggle((toggle) => {
-				toggle.setValue(this.plugin.settings.use_regex_to_check_for_tags).onChange(async (value) => {
-					this.plugin.settings.use_regex_to_check_for_tags = value;
-					await this.plugin.saveSettings();
-					this.display();
+		items.push({
+			name: 'Use regular expressions to check for tags',
+			desc: useRegexToCheckForTags,
+			render: (setting) => {
+				setting.addToggle((toggle) => {
+					toggle.setValue(this.plugin.settings.use_regex_to_check_for_tags).onChange(async (value) => {
+						this.plugin.settings.use_regex_to_check_for_tags = value;
+						await this.plugin.saveSettings();
+						this.redisplayKeepingScroll();
+					});
 				});
-			});
+			},
+		});
 
-		const ruleDesc = document.createDocumentFragment();
+		const ruleDesc = createFragment();
 		ruleDesc.append(
 			'1. Set the destination folder.',
 			descEl.createEl('br'),
@@ -180,9 +178,8 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 			descEl.createEl('strong', { text: 'AutoNoteMover: disable' }),
 			'" in the frontmatter.'
 		);
-		new Setting(this.containerEl)
-			.setName('Add new rule')
-			.setDesc(ruleDesc);
+		items.push({ name: 'Add new rule', desc: ruleDesc });
+
 		this.plugin.settings.folder_tag_pattern.forEach((folder_tag_pattern, index) => {
 			const settings = this.plugin.settings.folder_tag_pattern;
 			const settingTag = settings.map((e) => e['tag']);
@@ -191,183 +188,196 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 				return arr.some((arrVal) => val === arrVal);
 			};
 
-			const s = new Setting(this.containerEl)
-				.addSearch((cb) => {
-					new FolderSuggest(this.app, cb.inputEl);
-					cb.setPlaceholder('Folder')
-						.setValue(folder_tag_pattern.folder)
-						.onChange(async (newFolder) => {
-							this.plugin.settings.folder_tag_pattern[index].folder = newFolder.trim();
-							await this.plugin.saveSettings();
-						});
-				})
+			items.push({
+				name: '',
+				render: (s) => {
+					s.addSearch((cb) => {
+						new FolderSuggest(this.app, cb.inputEl);
+						cb.setPlaceholder('Folder')
+							.setValue(folder_tag_pattern.folder)
+							.onChange(async (newFolder) => {
+								this.plugin.settings.folder_tag_pattern[index].folder = newFolder.trim();
+								await this.plugin.saveSettings();
+							});
+					})
 
-				.addSearch((cb) => {
-					new TagSuggest(this.app, cb.inputEl);
-					cb.setPlaceholder('Tag')
-						.setValue(folder_tag_pattern.tag)
-						.onChange(async (newTag) => {
-							if (this.plugin.settings.folder_tag_pattern[index].pattern) {
-								this.display();
-								return new Notice(`You can set either the tag or the title.`);
-							}
-							if (newTag && checkArr(settingTag, newTag)) {
-								new Notice('This tag is already used.');
-								return;
-							}
-							if (!this.plugin.settings.use_regex_to_check_for_tags) {
-								this.plugin.settings.folder_tag_pattern[index].tag = newTag.trim();
-							} else if (this.plugin.settings.use_regex_to_check_for_tags) {
-								this.plugin.settings.folder_tag_pattern[index].tag = newTag;
-							}
-							await this.plugin.saveSettings();
-						});
-				})
+						.addSearch((cb) => {
+							new TagSuggest(this.app, cb.inputEl);
+							cb.setPlaceholder('Tag')
+								.setValue(folder_tag_pattern.tag)
+								.onChange(async (newTag) => {
+									if (this.plugin.settings.folder_tag_pattern[index].pattern) {
+										this.redisplayKeepingScroll();
+										return new Notice(`You can set either the tag or the title.`);
+									}
+									if (newTag && checkArr(settingTag, newTag)) {
+										new Notice('This tag is already used.');
+										return;
+									}
+									if (!this.plugin.settings.use_regex_to_check_for_tags) {
+										this.plugin.settings.folder_tag_pattern[index].tag = newTag.trim();
+									} else if (this.plugin.settings.use_regex_to_check_for_tags) {
+										this.plugin.settings.folder_tag_pattern[index].tag = newTag;
+									}
+									await this.plugin.saveSettings();
+								});
+						})
 
-				.addSearch((cb) => {
-					cb.setPlaceholder('Title by regex')
-						.setValue(folder_tag_pattern.pattern)
-						.onChange(async (newPattern) => {
-							if (this.plugin.settings.folder_tag_pattern[index].tag) {
-								this.display();
-								return new Notice(`You can set either the tag or the title.`);
-							}
+						.addSearch((cb) => {
+							cb.setPlaceholder('Title by regex')
+								.setValue(folder_tag_pattern.pattern)
+								.onChange(async (newPattern) => {
+									if (this.plugin.settings.folder_tag_pattern[index].tag) {
+										this.redisplayKeepingScroll();
+										return new Notice(`You can set either the tag or the title.`);
+									}
 
-							if (newPattern && checkArr(settingPattern, newPattern)) {
-								new Notice('This pattern is already used.');
-								return;
-							}
+									if (newPattern && checkArr(settingPattern, newPattern)) {
+										new Notice('This pattern is already used.');
+										return;
+									}
 
-							this.plugin.settings.folder_tag_pattern[index].pattern = newPattern;
-							await this.plugin.saveSettings();
+									this.plugin.settings.folder_tag_pattern[index].pattern = newPattern;
+									await this.plugin.saveSettings();
+								});
+						})
+						.addExtraButton((cb) => {
+							cb.setIcon('up-chevron-glyph')
+								.setTooltip('Move up')
+								.onClick(async () => {
+									arrayMove(this.plugin.settings.folder_tag_pattern, index, index - 1);
+									await this.plugin.saveSettings();
+									this.redisplayKeepingScroll();
+								});
+						})
+						.addExtraButton((cb) => {
+							cb.setIcon('down-chevron-glyph')
+								.setTooltip('Move down')
+								.onClick(async () => {
+									arrayMove(this.plugin.settings.folder_tag_pattern, index, index + 1);
+									await this.plugin.saveSettings();
+									this.redisplayKeepingScroll();
+								});
+						})
+						.addExtraButton((cb) => {
+							cb.setIcon('cross')
+								.setTooltip('Delete')
+								.onClick(async () => {
+									this.plugin.settings.folder_tag_pattern.splice(index, 1);
+									await this.plugin.saveSettings();
+									this.redisplayKeepingScroll();
+								});
 						});
-				})
-				.addExtraButton((cb) => {
-					cb.setIcon('up-chevron-glyph')
-						.setTooltip('Move up')
-						.onClick(async () => {
-							arrayMove(this.plugin.settings.folder_tag_pattern, index, index - 1);
-							await this.plugin.saveSettings();
-							this.redisplayKeepingScroll();
-						});
-				})
-				.addExtraButton((cb) => {
-					cb.setIcon('down-chevron-glyph')
-						.setTooltip('Move down')
-						.onClick(async () => {
-							arrayMove(this.plugin.settings.folder_tag_pattern, index, index + 1);
-							await this.plugin.saveSettings();
-							this.redisplayKeepingScroll();
-						});
-				})
-				.addExtraButton((cb) => {
-					cb.setIcon('cross')
-						.setTooltip('Delete')
-						.onClick(async () => {
-							this.plugin.settings.folder_tag_pattern.splice(index, 1);
-							await this.plugin.saveSettings();
-							this.redisplayKeepingScroll();
-						});
-				});
-			s.infoEl.remove();
-		});
-
-		const addRuleEl = this.containerEl.createEl('button', { cls: 'anm-add-rule' });
-		setIcon(addRuleEl, 'plus');
-		addRuleEl.createSpan({ text: 'Add rule' });
-		addRuleEl.addEventListener('click', async () => {
-			this.plugin.settings.folder_tag_pattern.push({
-				folder: '',
-				tag: '',
-				pattern: '',
+					s.infoEl.remove();
+				},
 			});
-			await this.plugin.saveSettings();
-			this.redisplayKeepingScroll();
 		});
 
-		const useRegexToCheckForExcludedFolder = document.createDocumentFragment();
+		items.push({
+			name: '',
+			render: (setting) => {
+				setting.settingEl.addClass('anm-add-rule-setting');
+				setting.infoEl.remove();
+				const addRuleEl = setting.controlEl.createEl('button', { cls: 'anm-add-rule' });
+				setIcon(addRuleEl, 'plus');
+				addRuleEl.createSpan({ text: 'Add rule' });
+				addRuleEl.addEventListener('click', () => {
+					void this.addRule();
+				});
+			},
+		});
+
+		const useRegexToCheckForExcludedFolder = createFragment();
 		useRegexToCheckForExcludedFolder.append(
 			'If enabled, excluded folder will be checked with regular expressions.'
 		);
 
-		new Setting(this.containerEl)
-			.setName('Use regular expressions to check for excluded folder')
-			.setDesc(useRegexToCheckForExcludedFolder)
-			.addToggle((toggle) => {
-				toggle.setValue(this.plugin.settings.use_regex_to_check_for_excluded_folder).onChange(async (value) => {
-					this.plugin.settings.use_regex_to_check_for_excluded_folder = value;
-					await this.plugin.saveSettings();
-					this.display();
+		items.push({
+			name: 'Use regular expressions to check for excluded folder',
+			desc: useRegexToCheckForExcludedFolder,
+			render: (setting) => {
+				setting.addToggle((toggle) => {
+					toggle.setValue(this.plugin.settings.use_regex_to_check_for_excluded_folder).onChange(async (value) => {
+						this.plugin.settings.use_regex_to_check_for_excluded_folder = value;
+						await this.plugin.saveSettings();
+						this.redisplayKeepingScroll();
+					});
 				});
-			});
+			},
+		});
 
-		const excludedFolderDesc = document.createDocumentFragment();
+		const excludedFolderDesc = createFragment();
 		excludedFolderDesc.append(
 			'Notes in the excluded folder will not be moved.',
 			descEl.createEl('br'),
 			'This takes precedence over the notes movement rules.'
 		);
-		new Setting(this.containerEl)
-
-			.setName('Add Excluded Folder')
-			.setDesc(excludedFolderDesc)
-			.addButton((button: ButtonComponent) => {
-				button
-					.setTooltip('Add Excluded Folders')
-					.setButtonText('+')
-					.setCta()
-					.onClick(async () => {
-						this.plugin.settings.excluded_folder.push({
-							folder: '',
-						});
-						await this.plugin.saveSettings();
-						this.display();
-					});
-			});
-
-		this.plugin.settings.excluded_folder.forEach((excluded_folder, index) => {
-			const s = new Setting(this.containerEl)
-				.addSearch((cb) => {
-					new FolderSuggest(this.app, cb.inputEl);
-					cb.setPlaceholder('Folder')
-						.setValue(excluded_folder.folder)
-						.onChange(async (newFolder) => {
-							this.plugin.settings.excluded_folder[index].folder = newFolder;
-							await this.plugin.saveSettings();
-						});
-				})
-
-				.addExtraButton((cb) => {
-					cb.setIcon('up-chevron-glyph')
-						.setTooltip('Move up')
+		items.push({
+			name: 'Add Excluded Folder',
+			desc: excludedFolderDesc,
+			render: (setting) => {
+				setting.addButton((button: ButtonComponent) => {
+					button
+						.setTooltip('Add Excluded Folders')
+						.setButtonText('+')
+						.setCta()
 						.onClick(async () => {
-							arrayMove(this.plugin.settings.excluded_folder, index, index - 1);
+							this.plugin.settings.excluded_folder.push({
+								folder: '',
+							});
 							await this.plugin.saveSettings();
-							this.display();
-						});
-				})
-				.addExtraButton((cb) => {
-					cb.setIcon('down-chevron-glyph')
-						.setTooltip('Move down')
-						.onClick(async () => {
-							arrayMove(this.plugin.settings.excluded_folder, index, index + 1);
-							await this.plugin.saveSettings();
-							this.display();
-						});
-				})
-				.addExtraButton((cb) => {
-					cb.setIcon('cross')
-						.setTooltip('Delete')
-						.onClick(async () => {
-							this.plugin.settings.excluded_folder.splice(index, 1);
-							await this.plugin.saveSettings();
-							this.display();
+							this.redisplayKeepingScroll();
 						});
 				});
-			s.infoEl.remove();
+			},
 		});
 
-		const statusBarTriggerIndicatorDesc = document.createDocumentFragment();
+		this.plugin.settings.excluded_folder.forEach((excluded_folder, index) => {
+			items.push({
+				name: '',
+				render: (s) => {
+					s.addSearch((cb) => {
+						new FolderSuggest(this.app, cb.inputEl);
+						cb.setPlaceholder('Folder')
+							.setValue(excluded_folder.folder)
+							.onChange(async (newFolder) => {
+								this.plugin.settings.excluded_folder[index].folder = newFolder;
+								await this.plugin.saveSettings();
+							});
+					})
+						.addExtraButton((cb) => {
+							cb.setIcon('up-chevron-glyph')
+								.setTooltip('Move up')
+								.onClick(async () => {
+									arrayMove(this.plugin.settings.excluded_folder, index, index - 1);
+									await this.plugin.saveSettings();
+									this.redisplayKeepingScroll();
+								});
+						})
+						.addExtraButton((cb) => {
+							cb.setIcon('down-chevron-glyph')
+								.setTooltip('Move down')
+								.onClick(async () => {
+									arrayMove(this.plugin.settings.excluded_folder, index, index + 1);
+									await this.plugin.saveSettings();
+									this.redisplayKeepingScroll();
+								});
+						})
+						.addExtraButton((cb) => {
+							cb.setIcon('cross')
+								.setTooltip('Delete')
+								.onClick(async () => {
+									this.plugin.settings.excluded_folder.splice(index, 1);
+									await this.plugin.saveSettings();
+									this.redisplayKeepingScroll();
+								});
+						});
+					s.infoEl.remove();
+				},
+			});
+		});
+
+		const statusBarTriggerIndicatorDesc = createFragment();
 		statusBarTriggerIndicatorDesc.append(
 			'The status bar will display [A] if the trigger is Automatic, and [M] for Manual.',
 			descEl.createEl('br'),
@@ -375,15 +385,20 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 			descEl.createEl('br'),
 			'Desktop only.'
 		);
-		new Setting(this.containerEl)
-			.setName('Status Bar Trigger Indicator')
-			.setDesc(statusBarTriggerIndicatorDesc)
-			.addToggle((toggle) => {
-				toggle.setValue(this.plugin.settings.statusBar_trigger_indicator).onChange(async (value) => {
-					this.plugin.settings.statusBar_trigger_indicator = value;
-					await this.plugin.saveSettings();
-					this.display();
+		items.push({
+			name: 'Status Bar Trigger Indicator',
+			desc: statusBarTriggerIndicatorDesc,
+			render: (setting) => {
+				setting.addToggle((toggle) => {
+					toggle.setValue(this.plugin.settings.statusBar_trigger_indicator).onChange(async (value) => {
+						this.plugin.settings.statusBar_trigger_indicator = value;
+						await this.plugin.saveSettings();
+						this.redisplayKeepingScroll();
+					});
 				});
-			});
+			},
+		});
+
+		return items;
 	}
 }

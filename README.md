@@ -1,10 +1,10 @@
-# Auto Note Mover (Fork by Rafael Ordaz)
+# Auto Note Mover (Forked)
 
 Auto Note Mover will automatically move the active notes to their respective folders according to the rules.
 
 ## About this fork
 
-This is a fork of the popular [Auto Note Mover](https://github.com/farux/obsidian-auto-note-mover) plugin by [faru](https://github.com/farux/), which has not been updated in several years. This fork brings the plugin up to date with current versions of Obsidian.
+This is a fork of the popular Auto Note Mover plugin by faru, which has not been updated in several years. This fork brings the plugin up to date with current versions of Obsidian.
 
 Changes in this fork:
 
@@ -122,16 +122,12 @@ Another possibility is that if the vault is monitored by a real-time sync softwa
 ### 2. Duplicate notes
 Check your sync software.
 
-Duplicate notes due to iCloud glitches have been reported.
-https://github.com/farux/obsidian-auto-note-mover/issues/19
+Duplicate notes due to iCloud glitches have been reported (see issue #19 on the original plugin's repository).
 
 ## Attribution
-Auto Note Mover was created by [faru](https://github.com/farux/) (https://github.com/farux/obsidian-auto-note-mover). This repository is a fork of that project.
+Auto Note Mover was created by faru. This repository is a fork of that project.
 
-suggest.ts and file-suggest.ts are copyrighted works of Liam Cain (https://github.com/liamcain) obsidian-periodic-notes (https://github.com/liamcain/obsidian-periodic-notes).
-
-popper.js https://popper.js.org/
-
+file-suggest.ts and tag-suggest.ts are copyrighted works of Liam Cain (https://github.com/liamcain) obsidian-periodic-notes (https://github.com/liamcain/obsidian-periodic-notes).
 
 ## Special Thanks
 Thanks to [@pjeby](https://github.com/pjeby) for his help in creating this plugin.
