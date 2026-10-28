@@ -1,0 +1,40 @@
+name: Create tag from manifest version
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - manifest.json
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  create-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read version from manifest.json
+        id: version
+        run: echo "version=$(jq -r .version manifest.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Create tag if it does not exist
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/$VERSION" > /dev/null 2>&1; then
+            echo "Tag $VERSION already exists, skipping."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "$VERSION"
+          git push origin "$VERSION"
+          # Tags pushed with GITHUB_TOKEN do not trigger other workflows, so dispatch the release explicitly.
+          gh workflow run release.yml --ref main -f tag="$VERSION"
+        env:
+          GH_TOKEN: ${{ github.token }}
