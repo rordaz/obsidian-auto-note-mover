@@ -3,7 +3,7 @@
 	"name": "Auto Note Mover (Forked)",
 	"version": "1.3.0",
 	"minAppVersion": "0.12.0",
-	"description": "Fork of Auto Note Mover with a fix for the folder suggestions in pop-out windows. Moves new notes into folders based on your rules.",
+	"description": "Moves notes to folders by matching their tag or title against your rules, automatically on create, edit, or rename, or manually.",
 	"author": "Rafael Ordaz",
 	"authorUrl": "https://github.com/rordaz",
 	"isDesktopOnly": true
