@@ -20,3 +20,13 @@
 	border-color: var(--interactive-accent);
 	outline: none;
 }
+
+.anm-add-rule-setting {
+	border: none;
+	padding: 0;
+}
+
+.anm-add-rule-setting .setting-item-control {
+	width: 100%;
+}
+
