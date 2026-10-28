@@ -153,6 +153,9 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 			descEl.createEl('strong', { text: 'AutoNoteMover: disable' }),
 			'" in the frontmatter.'
 		);
+		new Setting(this.containerEl)
+			.setName('Add new rule')
+			.setDesc(ruleDesc);
 		this.plugin.settings.folder_tag_pattern.forEach((folder_tag_pattern, index) => {
 			const settings = this.plugin.settings.folder_tag_pattern;
 			const settingTag = settings.map((e) => e['tag']);
@@ -243,8 +246,6 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 		});
 
 		new Setting(this.containerEl)
-			.setName('Add new rule')
-			.setDesc(ruleDesc)
 			.addButton((button: ButtonComponent) => {
 				button
 					.setTooltip('Add new rule')
