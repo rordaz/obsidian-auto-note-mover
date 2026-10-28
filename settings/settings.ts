@@ -153,26 +153,6 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 			descEl.createEl('strong', { text: 'AutoNoteMover: disable' }),
 			'" in the frontmatter.'
 		);
-		new Setting(this.containerEl)
-
-			.setName('Add new rule')
-			.setDesc(ruleDesc)
-			.addButton((button: ButtonComponent) => {
-				button
-					.setTooltip('Add new rule')
-					.setButtonText('+')
-					.setCta()
-					.onClick(async () => {
-						this.plugin.settings.folder_tag_pattern.push({
-							folder: '',
-							tag: '',
-							pattern: '',
-						});
-						await this.plugin.saveSettings();
-						this.display();
-					});
-			});
-
 		this.plugin.settings.folder_tag_pattern.forEach((folder_tag_pattern, index) => {
 			const settings = this.plugin.settings.folder_tag_pattern;
 			const settingTag = settings.map((e) => e['tag']);
@@ -261,6 +241,25 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 				});
 			s.infoEl.remove();
 		});
+
+		new Setting(this.containerEl)
+			.setName('Add new rule')
+			.setDesc(ruleDesc)
+			.addButton((button: ButtonComponent) => {
+				button
+					.setTooltip('Add new rule')
+					.setButtonText('+')
+					.setCta()
+					.onClick(async () => {
+						this.plugin.settings.folder_tag_pattern.push({
+							folder: '',
+							tag: '',
+							pattern: '',
+						});
+						await this.plugin.saveSettings();
+						this.display();
+					});
+			});
 
 		const useRegexToCheckForExcludedFolder = document.createDocumentFragment();
 		useRegexToCheckForExcludedFolder.append(
