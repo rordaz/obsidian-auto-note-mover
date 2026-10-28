@@ -1,4 +1,4 @@
-# Auto Note Mover
+# Auto Note Mover (Fork by Rafael Ordaz)
 
 Auto Note Mover will automatically move the active notes to their respective folders according to the rules.
 
@@ -9,6 +9,24 @@ This is a fork of the popular [Auto Note Mover](https://github.com/farux/obsidia
 Changes in this fork:
 
 - Fixed the folder and tag suggestion dropdown appearing outside the settings window when Obsidian settings are opened in a pop-out window.
+
+### Migrating from the original plugin
+
+> [!warning]
+> Never enable the original **Auto Note Mover** and **Auto Note Mover (Forked)** at the same time. Both plugins watch the same notes, so they can move a note twice or move it to the wrong folder. Disable the original before you enable the fork.
+
+Your rules and other settings are stored in `data.json`, and this fork reads the same format. To bring them over:
+
+1. In Obsidian, go to **Settings > Community plugins** and disable **Auto Note Mover** (the original). Disabling it first stops both plugins from moving notes at the same time.
+2. Install and enable **Auto Note Mover (Forked)**.
+3. Close Obsidian, or disable **Auto Note Mover (Forked)**, so it does not overwrite the file.
+4. Copy `data.json` from the original plugin folder to the fork's folder:
+   - From: `<vault>\.obsidian\plugins\auto-note-mover\data.json`
+   - To: `<vault>\.obsidian\plugins\auto-note-mover-forked\data.json`
+5. Start Obsidian again (or re-enable the fork) and check **Settings > Auto Note Mover (Forked)** to confirm your rules are listed.
+6. Once the rules look right, you can remove the original plugin.
+
+If the fork's folder already has a `data.json`, replace it with the copied file.
 
 This fork is currently **desktop only**. It has not been tested on mobile.
 
@@ -117,3 +135,5 @@ popper.js https://popper.js.org/
 
 ## Special Thanks
 Thanks to [@pjeby](https://github.com/pjeby) for his help in creating this plugin.
+
+This fork is maintained by Rafael Ordaz (https://github.com/rordaz).

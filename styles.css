@@ -1,0 +1,22 @@
+.anm-add-rule {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	width: 100%;
+	margin: 8px 0 16px;
+	padding: 12px;
+	border: 1px dashed var(--background-modifier-border);
+	border-radius: var(--radius-m);
+	background: transparent;
+	color: var(--text-muted);
+	font: inherit;
+	cursor: pointer;
+}
+
+.anm-add-rule:hover,
+.anm-add-rule:focus-visible {
+	color: var(--interactive-accent);
+	border-color: var(--interactive-accent);
+	outline: none;
+}

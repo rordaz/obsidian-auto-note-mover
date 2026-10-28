@@ -1,5 +1,19 @@
 # Release Notes
 
+## [1.3.1] - 2026-10-28
+
+### Added
+- "Add rule" is a full-width dashed row placed after the last rule, so a new rule appears where it will be used.
+- Settings page shows the steps to migrate rules from the original plugin, with a caution not to enable both plugins at the same time.
+- README has a migration section with the same steps.
+
+### Fixed
+- Blank rules no longer match every tag or title, so they cannot move notes to the root folder.
+- Settings scroll position is kept when adding, deleting, or moving rules.
+
+### Changed
+- Settings heading renamed to "Auto Note Mover (Forked)".
+
 ## [1.3.0] - 2026-10-28
 
 ### Fixed

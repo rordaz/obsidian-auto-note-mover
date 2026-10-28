@@ -1,5 +1,5 @@
 import AutoNoteMover from 'main';
-import { App, Notice, PluginSettingTab, Setting, ButtonComponent } from 'obsidian';
+import { App, Notice, PluginSettingTab, Setting, ButtonComponent, setIcon } from 'obsidian';
 
 import { FolderSuggest } from 'suggests/file-suggest';
 import { TagSuggest } from 'suggests/tag-suggest';
@@ -41,6 +41,14 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
+	// Re-renders the tab but keeps the settings panel's scroll position.
+	private redisplayKeepingScroll(): void {
+		const scroller = this.containerEl.closest('.vertical-tab-content');
+		const scrollTop = scroller?.scrollTop ?? 0;
+		this.display();
+		if (scroller) scroller.scrollTop = scrollTop;
+	}
+
 	display(): void {
 		const { containerEl } = this;
 
@@ -50,13 +58,32 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 	}
 
 	add_auto_note_mover_setting(): void {
-		this.containerEl.createEl('h2', { text: 'Auto Note Mover' });
+		this.containerEl.createEl('h2', { text: 'Auto Note Mover (Forked)' });
 
 		const descEl = document.createDocumentFragment();
 
 		new Setting(this.containerEl).setDesc(
 			'Auto Note Mover will automatically move the active notes to their respective folders according to the rules.'
 		);
+
+		const migrationDesc = document.createDocumentFragment();
+		migrationDesc.createEl('p', {
+			text: 'Caution: never enable the original Auto Note Mover and this fork at the same time. Both would watch the same notes and could move a note twice or to the wrong folder.',
+			cls: 'mod-warning',
+		});
+		migrationDesc.createEl('p', { text: 'To bring your rules over from the original plugin:' });
+		const steps = migrationDesc.createEl('ol');
+		steps.createEl('li', { text: 'Disable Auto Note Mover (the original) in Community plugins.' });
+		steps.createEl('li', { text: 'Enable Auto Note Mover (Forked).' });
+		steps.createEl('li', {
+			text: 'Close Obsidian, or disable the fork, then copy data.json from plugins/auto-note-mover/ to plugins/auto-note-mover-forked/ in your vault\'s .obsidian folder.',
+		});
+		steps.createEl('li', { text: 'Start Obsidian again (or re-enable the fork) and check the rules below.' });
+		steps.createEl('li', { text: 'Remove the original plugin once the rules look right.' });
+
+		new Setting(this.containerEl)
+			.setName('Migrating from the original plugin')
+			.setDesc(migrationDesc);
 
 		/* new Setting(this.containerEl)
 			.setName('Auto Note Mover')
@@ -154,25 +181,8 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 			'" in the frontmatter.'
 		);
 		new Setting(this.containerEl)
-
 			.setName('Add new rule')
-			.setDesc(ruleDesc)
-			.addButton((button: ButtonComponent) => {
-				button
-					.setTooltip('Add new rule')
-					.setButtonText('+')
-					.setCta()
-					.onClick(async () => {
-						this.plugin.settings.folder_tag_pattern.push({
-							folder: '',
-							tag: '',
-							pattern: '',
-						});
-						await this.plugin.saveSettings();
-						this.display();
-					});
-			});
-
+			.setDesc(ruleDesc);
 		this.plugin.settings.folder_tag_pattern.forEach((folder_tag_pattern, index) => {
 			const settings = this.plugin.settings.folder_tag_pattern;
 			const settingTag = settings.map((e) => e['tag']);
@@ -238,7 +248,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 						.onClick(async () => {
 							arrayMove(this.plugin.settings.folder_tag_pattern, index, index - 1);
 							await this.plugin.saveSettings();
-							this.display();
+							this.redisplayKeepingScroll();
 						});
 				})
 				.addExtraButton((cb) => {
@@ -247,7 +257,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 						.onClick(async () => {
 							arrayMove(this.plugin.settings.folder_tag_pattern, index, index + 1);
 							await this.plugin.saveSettings();
-							this.display();
+							this.redisplayKeepingScroll();
 						});
 				})
 				.addExtraButton((cb) => {
@@ -256,10 +266,23 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 						.onClick(async () => {
 							this.plugin.settings.folder_tag_pattern.splice(index, 1);
 							await this.plugin.saveSettings();
-							this.display();
+							this.redisplayKeepingScroll();
 						});
 				});
 			s.infoEl.remove();
+		});
+
+		const addRuleEl = this.containerEl.createEl('button', { cls: 'anm-add-rule' });
+		setIcon(addRuleEl, 'plus');
+		addRuleEl.createSpan({ text: 'Add rule' });
+		addRuleEl.addEventListener('click', async () => {
+			this.plugin.settings.folder_tag_pattern.push({
+				folder: '',
+				tag: '',
+				pattern: '',
+			});
+			await this.plugin.saveSettings();
+			this.redisplayKeepingScroll();
 		});
 
 		const useRegexToCheckForExcludedFolder = document.createDocumentFragment();
