@@ -9,6 +9,12 @@
 import { App, ISuggestOwner, Scope } from 'obsidian';
 import { createPopper, Instance as PopperInstance } from '@popperjs/core';
 
+// Internal Obsidian objects that are not part of the public typings.
+interface InternalApp {
+	dom: { appContainerEl: HTMLElement };
+	keymap: { pushScope(scope: Scope): void; popScope(scope: Scope): void };
+}
+
 export const wrapAround = (value: number, size: number): number => {
 	return ((value % size) + size) % size;
 };
@@ -114,9 +120,7 @@ export abstract class TextInputSuggest<T> implements ISuggestOwner<T> {
 		this.inputEl = inputEl;
 		this.scope = new Scope();
 
-		// Create the elements in the input's own document so it works in pop-out windows
-		this.suggestEl = inputEl.ownerDocument.createElement('div');
-		this.suggestEl.addClass('suggestion-container');
+		this.suggestEl = createDiv({ cls: 'suggestion-container' });
 		const suggestion = this.suggestEl.createDiv('suggestion');
 		this.suggest = new Suggest(this, suggestion, this.scope);
 
@@ -136,14 +140,12 @@ export abstract class TextInputSuggest<T> implements ISuggestOwner<T> {
 
 		if (suggestions.length > 0) {
 			this.suggest.setSuggestions(suggestions);
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			this.open((<any>this.app).dom.appContainerEl, this.inputEl);
+			this.open((this.app as unknown as InternalApp).dom.appContainerEl, this.inputEl);
 		}
 	}
 
 	open(container: HTMLElement, inputEl: HTMLElement): void {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		(<any>this.app).keymap.pushScope(this.scope);
+		(this.app as unknown as InternalApp).keymap.pushScope(this.scope);
 
 		// In a pop-out window the app container belongs to the main window, so use the input's own body
 		const doc = inputEl.ownerDocument;
@@ -164,7 +166,7 @@ export abstract class TextInputSuggest<T> implements ISuggestOwner<T> {
 							return;
 						}
 						state.styles.popper.width = targetWidth;
-						instance.update();
+						void instance.update();
 					},
 					phase: 'beforeWrite',
 					requires: ['computeStyles'],
@@ -174,8 +176,7 @@ export abstract class TextInputSuggest<T> implements ISuggestOwner<T> {
 	}
 
 	close(): void {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		(<any>this.app).keymap.popScope(this.scope);
+		(this.app as unknown as InternalApp).keymap.popScope(this.scope);
 
 		this.suggest.setSuggestions([]);
 		this.popper.destroy();

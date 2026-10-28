@@ -1,4 +1,4 @@
-# Auto Note Mover (Fork by Rafael Ordaz)
+# Auto Note Mover (Forked)
 
 Auto Note Mover will automatically move the active notes to their respective folders according to the rules.
 

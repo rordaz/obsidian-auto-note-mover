@@ -49,6 +49,16 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 		if (scroller) scroller.scrollTop = scrollTop;
 	}
 
+	private async addRule(): Promise<void> {
+		this.plugin.settings.folder_tag_pattern.push({
+			folder: '',
+			tag: '',
+			pattern: '',
+		});
+		await this.plugin.saveSettings();
+		this.redisplayKeepingScroll();
+	}
+
 	display(): void {
 		const { containerEl } = this;
 
@@ -58,15 +68,15 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 	}
 
 	add_auto_note_mover_setting(): void {
-		this.containerEl.createEl('h2', { text: 'Auto Note Mover (Forked)' });
+		new Setting(this.containerEl).setName('Auto Note Mover (Forked)').setHeading();
 
-		const descEl = document.createDocumentFragment();
+		const descEl = createFragment();
 
 		new Setting(this.containerEl).setDesc(
 			'Auto Note Mover will automatically move the active notes to their respective folders according to the rules.'
 		);
 
-		const migrationDesc = document.createDocumentFragment();
+		const migrationDesc = createFragment();
 		migrationDesc.createEl('p', {
 			text: 'Caution: never enable the original Auto Note Mover and this fork at the same time. Both would watch the same notes and could move a note twice or to the wrong folder.',
 			cls: 'mod-warning',
@@ -76,7 +86,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 		steps.createEl('li', { text: 'Disable Auto Note Mover (the original) in Community plugins.' });
 		steps.createEl('li', { text: 'Enable Auto Note Mover (Forked).' });
 		steps.createEl('li', {
-			text: 'Close Obsidian, or disable the fork, then copy data.json from plugins/auto-note-mover/ to plugins/auto-note-mover-forked/ in your vault\'s .obsidian folder.',
+			text: `Close Obsidian, or disable the fork, then copy data.json from plugins/auto-note-mover/ to plugins/auto-note-mover-forked/ in your vault's ${this.app.vault.configDir} folder.`,
 		});
 		steps.createEl('li', { text: 'Start Obsidian again (or re-enable the fork) and check the rules below.' });
 		steps.createEl('li', { text: 'Remove the original plugin once the rules look right.' });
@@ -102,7 +112,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 			return;
 		} */
 
-		const triggerDesc = document.createDocumentFragment();
+		const triggerDesc = createFragment();
 		triggerDesc.append(
 			'Choose how the trigger will be activated.',
 			descEl.createEl('br'),
@@ -124,14 +134,14 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 					.addOption('Automatic', 'Automatic')
 					.addOption('Manual', 'Manual')
 					.setValue(this.plugin.settings.trigger_auto_manual)
-					.onChange((value: string) => {
+					.onChange(async (value: string) => {
 						this.plugin.settings.trigger_auto_manual = value;
-						this.plugin.saveData(this.plugin.settings);
+						await this.plugin.saveData(this.plugin.settings);
 						this.display();
 					})
 			);
 
-		const useRegexToCheckForTags = document.createDocumentFragment();
+		const useRegexToCheckForTags = createFragment();
 		useRegexToCheckForTags.append(
 			'If enabled, tags will be checked with regular expressions.',
 			descEl.createEl('br'),
@@ -155,7 +165,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 				});
 			});
 
-		const ruleDesc = document.createDocumentFragment();
+		const ruleDesc = createFragment();
 		ruleDesc.append(
 			'1. Set the destination folder.',
 			descEl.createEl('br'),
@@ -275,17 +285,11 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 		const addRuleEl = this.containerEl.createEl('button', { cls: 'anm-add-rule' });
 		setIcon(addRuleEl, 'plus');
 		addRuleEl.createSpan({ text: 'Add rule' });
-		addRuleEl.addEventListener('click', async () => {
-			this.plugin.settings.folder_tag_pattern.push({
-				folder: '',
-				tag: '',
-				pattern: '',
-			});
-			await this.plugin.saveSettings();
-			this.redisplayKeepingScroll();
+		addRuleEl.addEventListener('click', () => {
+			void this.addRule();
 		});
 
-		const useRegexToCheckForExcludedFolder = document.createDocumentFragment();
+		const useRegexToCheckForExcludedFolder = createFragment();
 		useRegexToCheckForExcludedFolder.append(
 			'If enabled, excluded folder will be checked with regular expressions.'
 		);
@@ -301,7 +305,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 				});
 			});
 
-		const excludedFolderDesc = document.createDocumentFragment();
+		const excludedFolderDesc = createFragment();
 		excludedFolderDesc.append(
 			'Notes in the excluded folder will not be moved.',
 			descEl.createEl('br'),
@@ -367,7 +371,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 			s.infoEl.remove();
 		});
 
-		const statusBarTriggerIndicatorDesc = document.createDocumentFragment();
+		const statusBarTriggerIndicatorDesc = createFragment();
 		statusBarTriggerIndicatorDesc.append(
 			'The status bar will display [A] if the trigger is Automatic, and [M] for Manual.',
 			descEl.createEl('br'),

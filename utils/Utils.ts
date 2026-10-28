@@ -2,7 +2,7 @@ import { App, CachedMetadata, normalizePath, Notice, parseFrontMatterEntry, TFil
 
 // Disable AutoNoteMover when "AutoNoteMover: disable" is present in the frontmatter.
 export const isFmDisable = (fileCache: CachedMetadata) => {
-	const fm = parseFrontMatterEntry(fileCache.frontmatter, 'AutoNoteMover');
+	const fm: unknown = parseFrontMatterEntry(fileCache.frontmatter, 'AutoNoteMover');
 	if (fm === 'disable') {
 		return true;
 	} else {
@@ -51,7 +51,6 @@ export const fileMove = async (app: App, settingFolder: string, fileFullName: st
 	}
 	// Move file
 	await app.fileManager.renameFile(file, newPath);
-	console.log(`[Auto Note Mover] Moved the note "${fileFullName}" to the "${settingFolder}".`);
 	new Notice(`[Auto Note Mover]\nMoved the note "${fileFullName}"\nto the "${settingFolder}".`);
 };
 
