@@ -114,7 +114,9 @@ export abstract class TextInputSuggest<T> implements ISuggestOwner<T> {
 		this.inputEl = inputEl;
 		this.scope = new Scope();
 
-		this.suggestEl = createDiv('suggestion-container');
+		// Create the elements in the input's own document so it works in pop-out windows
+		this.suggestEl = inputEl.ownerDocument.createElement('div');
+		this.suggestEl.addClass('suggestion-container');
 		const suggestion = this.suggestEl.createDiv('suggestion');
 		this.suggest = new Suggest(this, suggestion, this.scope);
 
@@ -143,7 +145,9 @@ export abstract class TextInputSuggest<T> implements ISuggestOwner<T> {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(<any>this.app).keymap.pushScope(this.scope);
 
-		container.appendChild(this.suggestEl);
+		// In a pop-out window the app container belongs to the main window, so use the input's own body
+		const doc = inputEl.ownerDocument;
+		(doc === document ? container : doc.body).appendChild(this.suggestEl);
 		this.popper = createPopper(inputEl, this.suggestEl, {
 			placement: 'bottom-start',
 			modifiers: [

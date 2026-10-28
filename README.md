@@ -2,6 +2,18 @@
 
 Auto Note Mover will automatically move the active notes to their respective folders according to the rules.
 
+## About this fork
+
+This is a fork of the popular [Auto Note Mover](https://github.com/farux/obsidian-auto-note-mover) plugin by [faru](https://github.com/farux/), which has not been updated in several years. This fork brings the plugin up to date with current versions of Obsidian.
+
+Changes in this fork:
+
+- Fixed the folder and tag suggestion dropdown appearing outside the settings window when Obsidian settings are opened in a pop-out window.
+
+This fork is currently **desktop only**. It has not been tested on mobile.
+
+All credit for the original plugin goes to its author. This fork keeps the original MIT license.
+
 ## How it works
 
 Register the tag or title of the note you want to move to the rule.
@@ -96,6 +108,8 @@ Duplicate notes due to iCloud glitches have been reported.
 https://github.com/farux/obsidian-auto-note-mover/issues/19
 
 ## Attribution
+Auto Note Mover was created by [faru](https://github.com/farux/) (https://github.com/farux/obsidian-auto-note-mover). This repository is a fork of that project.
+
 suggest.ts and file-suggest.ts are copyrighted works of Liam Cain (https://github.com/liamcain) obsidian-periodic-notes (https://github.com/liamcain/obsidian-periodic-notes).
 
 popper.js https://popper.js.org/
