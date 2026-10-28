@@ -41,6 +41,14 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
+	// Re-renders the tab but keeps the settings panel's scroll position.
+	private redisplayKeepingScroll(): void {
+		const scroller = this.containerEl.closest('.vertical-tab-content');
+		const scrollTop = scroller?.scrollTop ?? 0;
+		this.display();
+		if (scroller) scroller.scrollTop = scrollTop;
+	}
+
 	display(): void {
 		const { containerEl } = this;
 
@@ -221,7 +229,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 						.onClick(async () => {
 							arrayMove(this.plugin.settings.folder_tag_pattern, index, index - 1);
 							await this.plugin.saveSettings();
-							this.display();
+							this.redisplayKeepingScroll();
 						});
 				})
 				.addExtraButton((cb) => {
@@ -230,7 +238,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 						.onClick(async () => {
 							arrayMove(this.plugin.settings.folder_tag_pattern, index, index + 1);
 							await this.plugin.saveSettings();
-							this.display();
+							this.redisplayKeepingScroll();
 						});
 				})
 				.addExtraButton((cb) => {
@@ -239,7 +247,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 						.onClick(async () => {
 							this.plugin.settings.folder_tag_pattern.splice(index, 1);
 							await this.plugin.saveSettings();
-							this.display();
+							this.redisplayKeepingScroll();
 						});
 				});
 			s.infoEl.remove();
@@ -249,16 +257,13 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 		setIcon(addRuleEl, 'plus');
 		addRuleEl.createSpan({ text: 'Add rule' });
 		addRuleEl.addEventListener('click', async () => {
-			const scroller = this.containerEl.closest('.vertical-tab-content');
-			const scrollTop = scroller?.scrollTop ?? 0;
 			this.plugin.settings.folder_tag_pattern.push({
 				folder: '',
 				tag: '',
 				pattern: '',
 			});
 			await this.plugin.saveSettings();
-			this.display();
-			if (scroller) scroller.scrollTop = scrollTop;
+			this.redisplayKeepingScroll();
 		});
 
 		const useRegexToCheckForExcludedFolder = document.createDocumentFragment();
