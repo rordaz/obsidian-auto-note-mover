@@ -54,6 +54,8 @@ export default class AutoNoteMover extends Plugin {
 				const settingFolder = folderTagPattern[i].folder;
 				const settingTag = folderTagPattern[i].tag;
 				const settingPattern = folderTagPattern[i].pattern;
+				// Skip blank rules (e.g. a newly added row) so they never match
+				if (!settingFolder && !settingTag && !settingPattern) continue;
 				// Tag check
 				if (!settingPattern) {
 					if (!this.settings.use_regex_to_check_for_tags) {
