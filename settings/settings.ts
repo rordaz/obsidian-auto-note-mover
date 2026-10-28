@@ -249,6 +249,8 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 		setIcon(addRuleEl, 'plus');
 		addRuleEl.createSpan({ text: 'Add rule' });
 		addRuleEl.addEventListener('click', async () => {
+			const scroller = this.containerEl.closest('.vertical-tab-content');
+			const scrollTop = scroller?.scrollTop ?? 0;
 			this.plugin.settings.folder_tag_pattern.push({
 				folder: '',
 				tag: '',
@@ -256,6 +258,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 			});
 			await this.plugin.saveSettings();
 			this.display();
+			if (scroller) scroller.scrollTop = scrollTop;
 		});
 
 		const useRegexToCheckForExcludedFolder = document.createDocumentFragment();
