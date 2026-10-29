@@ -125,11 +125,7 @@ Check your sync software.
 Duplicate notes due to iCloud glitches have been reported (see issue #19 on the original plugin's repository).
 
 ## Attribution
-Auto Note Mover was created by faru. This repository is a fork of that project.
-
+Original Auto Note Mover was created by faru. This repository is a fork of that project.
 file-suggest.ts and tag-suggest.ts are copyrighted works of Liam Cain (https://github.com/liamcain) obsidian-periodic-notes (https://github.com/liamcain/obsidian-periodic-notes).
-
-## Special Thanks
-Thanks to [@pjeby](https://github.com/pjeby) for his help in creating this plugin.
 
 This fork is maintained by Rafael Ordaz (https://github.com/rordaz).
